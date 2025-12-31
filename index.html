@@ -1,0 +1,200 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+
+void main() => runApp(const LegalProdigyApp());
+
+class LegalProdigyApp extends StatelessWidget {
+  const LegalProdigyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        scaffoldBackgroundColor: const Color(0xFFF5F2ED), // Parchment
+        primaryColor: const Color(0xFF2C3E50),           // Dark Charcoal
+        textTheme: GoogleFonts.interTextTheme(),
+      ),
+      home: const Dashboard(),
+    );
+  }
+}
+
+class Dashboard extends StatefulWidget {
+  const Dashboard({super.key});
+
+  @override
+  State<Dashboard> createState() => _DashboardState();
+}
+
+class _DashboardState extends State<Dashboard> {
+  int _currentIndex = 0;
+
+  // --- INTEGRATED DATA STATE ---
+  bool bareAct = false;
+  bool caseLaw = false;
+  bool notes = false;
+  bool writing = false; // THE MANDATORY GATEKEEPER
+  int streak = 14;
+
+  // Logic: Success only if writing is true
+  bool get isDaySuccessful => writing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          _buildDharmaTab(),   // Daily Tracker
+          _buildLegacyTab(),   // Monthly/Yearly
+          _buildStillnessTab(), // Mind/Quotes
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (i) => setState(() => _currentIndex = i),
+        selectedItemColor: const Color(0xFF2C3E50),
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.edit_document), label: "Dharma"),
+          BottomNavigationBarItem(icon: Icon(Icons.military_tech), label: "Legacy"),
+          BottomNavigationBarItem(icon: Icon(Icons.self_improvement), label: "Stillness"),
+        ],
+      ),
+    );
+  }
+
+  // --- SECTION 1: DAILY DHARMA (DAILY TRACKER) ---
+  Widget _buildDharmaTab() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 25),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 70),
+          Text(DateFormat('EEEE, MMM d').format(DateTime.now()).toUpperCase(), 
+              style: GoogleFonts.inter(letterSpacing: 2, fontSize: 12, color: Colors.grey)),
+          Text("DAILY DHARMA", style: GoogleFonts.playfairDisplay(fontSize: 32, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: isDaySuccessful ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(isDaySuccessful ? "STATUS: VALIDATED ✔" : "STATUS: VOID ❌",
+                style: TextStyle(color: isDaySuccessful ? Colors.green[800] : Colors.red[800], fontWeight: FontWeight.bold, fontSize: 12)),
+          ),
+          const SizedBox(height: 30),
+          _taskTile("30m Bare Act Reading", bareAct, (v) => setState(() => bareAct = v!)),
+          _taskTile("45m Case Law Study", caseLaw, (v) => setState(() => caseLaw = v!)),
+          _taskTile("30m Notes Preparation", notes, (v) => setState(() => notes = v!)),
+          _taskTile("15m Writing (NON-NEGOTIABLE)", writing, (v) => setState(() => writing = v!), isMandatory: true),
+          const Spacer(),
+          _buildStreakCard(),
+          const SizedBox(height: 30),
+        ],
+      ),
+    );
+  }
+
+  // --- SECTION 2: LEGACY (MONTHLY & YEARLY) ---
+  Widget _buildLegacyTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(25),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 70),
+          Text("2026 MASTERY", style: GoogleFonts.playfairDisplay(fontSize: 32, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 25),
+          _progressRow("Publications", 12, 40),
+          _progressRow("Specialised Domains", 3, 8),
+          _progressRow("Notes Archive (Pages)", 140, 500),
+          const Divider(height: 60, color: Colors.black12),
+          Text("MONTHLY FOCUS: DATA LAW", style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 15),
+          const Text("• Bare Act & Rules: COMPLETED\n• 12/15 Key Judgments Read\n• Article 1: Accepted for Publication\n• Article 2: In Peer Review"),
+          const SizedBox(height: 30),
+          Text("“If all are ticked → You win. No debate.”", style: GoogleFonts.playfairDisplay(fontStyle: FontStyle.italic, color: Colors.grey)),
+        ],
+      ),
+    );
+  }
+
+  // --- SECTION 3: STILLNESS (MIND & QUOTES) ---
+  Widget _buildStillnessTab() {
+    String quote = writing 
+        ? "Action dissolves anxiety. You have done your duty. Remain grounded."
+        : "You failed today. Do not hide from the truth. Sit. Breathe. Begin again.";
+    
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(quote, textAlign: TextAlign.center, 
+                style: GoogleFonts.playfairDisplay(fontSize: 24, fontStyle: FontStyle.italic, color: const Color(0xFF2C3E50))),
+            const SizedBox(height: 40),
+            const Text("SIT IN SILENCE. 5 MINUTES. NO INPUT.", style: TextStyle(letterSpacing: 2, fontSize: 10, color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- REUSABLE UI COMPONENTS ---
+  Widget _taskTile(String title, bool val, Function(bool?)? onChg, {bool isMandatory = false}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: isMandatory ? const Color(0xFFE8E4D9) : Colors.white.withOpacity(0.5),
+        border: Border.all(color: const Color(0xFF2C3E50), width: 0.5),
+      ),
+      child: CheckboxListTile(
+        title: Text(title, style: GoogleFonts.inter(fontSize: 14, fontWeight: isMandatory ? FontWeight.bold : FontWeight.normal)),
+        value: val,
+        onChanged: onChg,
+        activeColor: const Color(0xFF2C3E50),
+        checkColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildStreakCard() {
+    return Container(
+      padding: const EdgeInsets.all(25),
+      decoration: const BoxDecoration(color: Color(0xFF2C3E50)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("$streak DAYS", style: GoogleFonts.inter(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+              const Text("CONSISTENCY STREAK", style: TextStyle(color: Colors.white60, fontSize: 10, letterSpacing: 1.5)),
+            ],
+          ),
+          const Icon(Icons.Whatshot, color: Colors.orange, size: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _progressRow(String label, int current, int total) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("$label ($current/$total)", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(value: current / total, backgroundColor: Colors.black12, color: const Color(0xFF2C3E50), minHeight: 6),
+        ],
+      ),
+    );
+  }
+}
